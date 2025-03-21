@@ -12,7 +12,7 @@ except Exception as e:
     print("❌ Connection failed:", e)
 
  #Database Configuration (PostgreSQL)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://iris_chatbot_user:rWy6A23qAb988nQxwMSTl8gPsjzRSUO3@dpg-cvd8igl2ng1s73drfbd0-a:5432/iris_chatbot'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://iris_chatbot_user:crWy6A23qAb988nQxwMSTl8gPsjzRSUO3@dpg-cvd8igl2ng1s73drfbd0-a.oregon-postgres.render.com/iris_chatbot'
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
