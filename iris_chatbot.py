@@ -3,15 +3,16 @@ from flask_sqlalchemy import SQLAlchemy
 from twilio.twiml.messaging_response import MessagingResponse
 from pyngrok import ngrok  
 from pyngrok import ngrok
+import sshtunnel
+
 tunnel = ngrok.connect(5000)
 print(f"ngrok URL: {tunnel.public_url}")
-
 
 # Initialize Flask App 
 app = Flask(__name__)
 
 # Database Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:celinemysql#1@localhost/iris_chatbot'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql+psycopg2://iris_chatbot_user:crWy6A23qAb988nQxwMSTl8gPsjzRSUO3@dpg-cvd8igl2ng1s73drfbd0-a.oregon-postgres.render.com/iris_chatbot'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
