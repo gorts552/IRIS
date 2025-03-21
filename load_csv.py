@@ -1,5 +1,4 @@
 import pandas as pd
-import psycopg2
 from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Text
 
 
@@ -10,7 +9,7 @@ DB_HOST = "dpg-cvd8igl2ng1s73drfbd0-a.oregon-postgres.render.com"
 DB_PORT = "5432"  # Change if necessary
 DB_NAME = "iris_chatbot"
 table_name = "health_info"
-csv_file_path = r"C:\\Users\\BlvckMoon\\Documents\\GitHub\\IRIS\\health_info.csv" # Replace
+csv_file_path = r"C:\\Users\\Celine\\Documents" # Replace
 CHUNKSIZE = 1000  # Adjust based on available system memory
 
 
