@@ -3,3 +3,4 @@ twilio
 gunicorn
 mysql-connector-python
 Flask-SQLAlchemy
+psycopg2
