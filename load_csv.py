@@ -1,39 +1,41 @@
-import pymysql
+import pandas as pd
+import psycopg2
+from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Text
 
-conn = pymysql.connect(
-    host="localhost",
-    user="root",
-    password="celinemysql#1",  # Replace with your actual password
-    database="iris_chatbot",  # Replace with your actual database name
-    local_infile=True  # This should enable local file loading
+
+# Database credentials
+DB_USER = "iris_chatbot_user"
+DB_PASSWORD = "rWy6A23qAb988nQxwMSTl8gPsjzRSUO3"
+DB_HOST = "dpg-cvd8igl2ng1s73drfbd0-a.oregon-postgres.render.com"
+DB_PORT = "5432"  # Change if necessary
+DB_NAME = "iris_chatbot"
+table_name = "health_info"
+csv_file_path = r"C:\\Users\\BlvckMoon\\Documents\\GitHub\\IRIS\\health_info.csv" # Replace
+CHUNKSIZE = 1000  # Adjust based on available system memory
+
+
+engine = create_engine(f'postgresql+psycopg2://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}')
+connection = engine.connect()
+metadata = MetaData()
+
+# Table Structure
+health_info = Table(
+    table_name, metadata,
+    Column('id', Integer, primary_key=True, autoincrement=True),
+    Column('question', String(500), nullable=False),
+    Column('answer', Text, nullable=False),
 )
+# Create table if it does not exist
+metadata.create_all(engine)
 
+# Read and load CSV in chunks
+for chunk in pd.read_csv(csv_file_path, chunksize=CHUNKSIZE):
+    chunk.dropna(inplace=True)  # Drop rows with any NULL values
+    if not chunk.empty:  # Check if the chunk still has data
+        chunk.to_sql(table_name, con=engine, if_exists='append', index=False)
+        print(f'Inserted {len(chunk)} rows...')
+    else:
+        print("Skipped empty chunk after dropping NULL rows.")
 
-
-
-cursor = conn.cursor()
-
-# Enable local infile for this session (global must be set manually)
-cursor.execute("SET SESSION local_infile = 1;")
-
-# Load data from CSV file
-csv_file_path = r"C:/ProgramData/MySQL/MySQL Server 8.0/Uploads "  # Replace with your actual file path
-
-query = f"""
-LOAD DATA LOCAL INFILE '{csv_file_path}'
-INTO TABLE health_info  # Replace with your actual table name
-FIELDS TERMINATED BY ',' 
-LINES TERMINATED BY '\r\n'  # Windows line break
-IGNORE 1 ROWS;
-"""
-
-try:
-    cursor.execute(query)
-    conn.commit()
-    print("🎉 Data successfully loaded into MySQL!")
-except Exception as e:
-    print(f"❌ Error: {e}")
-    conn.rollback()
-
-cursor.close()
-conn.close()
+print("🎉 Data successfully loaded into PostgreSQL!")
+connection.close()
