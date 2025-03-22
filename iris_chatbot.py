@@ -3,7 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.sql import text  
 from twilio.twiml.messaging_response import MessagingResponse
 from sqlalchemy import or_
-from iris_chatbot import db, HealthInfo, FAQTracking  # Adjust import based on your setup
 import logging
 
 # Initialize Flask App 
@@ -46,17 +45,20 @@ KEYWORD_DICTIONARY = {
 }
 
 # Function to Match User Queries
+
 def get_response(user_message):
+    from iris_chatbot import db, HealthInfo, FAQTracking  # Moved inside, properly indented
+
     print(f"Received message: {user_message}")
     user_message = user_message.lower()
-    
+
     # Try exact match first
     faq_entry = HealthInfo.query.filter(HealthInfo.question.ilike(f"%{user_message}%")).first()
-    
+
     if not faq_entry:
         # Token-based keyword matching
         words = user_message.split()
-        matched_questions = set()
+        matched_questions = set()       
 
         for word in words:
             for key, synonyms in KEYWORD_DICTIONARY.items():
