@@ -100,6 +100,9 @@ def get_response(user_message):
 
     print(f"Received message: {user_message}")
     user_message = user_message.lower()
+ # Check if the user is greeting IRIS
+    if any(word in user_message for word in KEYWORD_DICTIONARY["Greeting"]):
+        return iris_greeting()  # Call your greeting function
 
     # Try exact match first
     faq_entry = HealthInfo.query.filter(HealthInfo.question.ilike(f"%{user_message}%")).first()

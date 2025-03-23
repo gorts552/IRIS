@@ -5,3 +5,4 @@ mysql-connector-python
 Flask-SQLAlchemy
 psycopg2
 fuzzywuzzy
+python_Levenshtein
