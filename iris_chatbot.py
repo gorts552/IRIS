@@ -4,8 +4,7 @@ from sqlalchemy.sql import text
 from twilio.twiml.messaging_response import MessagingResponse
 from sqlalchemy import or_
 import logging
-from fuzzywuzzy import process
-
+from rapidfuzz import process
 
 # Initialize Flask App 
 app = Flask(__name__)
@@ -110,9 +109,9 @@ def get_response(user_message):
     if not faq_entry:
         # Use fuzzy matching if no exact match is found
         all_questions = [q.question for q in HealthInfo.query.all()]
-        best_match, score = process.extractOne(user_message, all_questions)
+        best_match, score = process.extractOne(user_message, all_questions, score_cutoff=60)
 
-        if score >= 70:  # Only accept good matches (70% similarity or higher)
+        if score >= 60:  # Only accept good matches (50% similarity or higher)
             faq_entry = HealthInfo.query.filter_by(question=best_match).first()
  
        
