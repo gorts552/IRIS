@@ -4,6 +4,8 @@ from sqlalchemy.sql import text
 from twilio.twiml.messaging_response import MessagingResponse
 from sqlalchemy import or_
 import logging
+from fuzzywuzzy import process
+
 
 # Initialize Flask App 
 app = Flask(__name__)
@@ -34,15 +36,62 @@ class FAQTracking(db.Model):
     access_count = db.Column(db.Integer, default=0)
 
     question = db.relationship('HealthInfo', backref=db.backref('faq_tracking', lazy=True))
+# Function to return a greeting
+def iris_greeting():
+    return "Hello! I'm IRIS, your reproductive health assistant. How can I help you today?"
+   
 
 # Keyword Dictionary for Matching
-KEYWORD_DICTIONARY = {
-    "pregnancy": ["pregnant", "conception", "fertility"],
-    "menstruation": ["period", "menstrual cycle", "cramps"],
-    "contraception": ["birth control", "condom", "pill","morning after pill"],
-    "STI": ["STD", "infection", "HIV", "herpes","gonorrhea","chlamydia"]
-     
+KEYWORD_DICTIONARY ={
+    "Greeting": [
+        "hi", "hello", "hey", "good morning", "good evening", "whats up", 
+        "yo", "sup", "how are you"
+    ],
+    "STIs": [
+        "STI", "STD", "sexually transmitted infection", "sexually transmitted disease", 
+        "sex infection", "disease from sex", "can I get an STI", "can I get an STD", 
+        "what are STDs", "types of STIs", "common STDs"
+    ],
+    "STI Symptoms": [
+        "STI symptoms", "STD symptoms", "signs of STI", "signs of STD", 
+        "how do I know if I have an STI", "what does an STD feel like", "symptoms of gonorrhea", 
+        "symptoms of chlamydia", "symptoms of herpes", "does an STI hurt"
+    ],
+    "STI Prevention": [
+        "how to prevent STIs", "how to prevent STDs", "safe sex", "protection from STIs", 
+        "can condoms prevent STDs", "how to avoid getting an STI", "safe sex tips"
+    ],
+    "HIV & AIDS": [
+        "HIV", "AIDS", "can I get HIV", "what is HIV", "how does HIV spread", 
+        "is HIV curable", "difference between HIV and AIDS", "how to prevent HIV", 
+        "can you get HIV from kissing", "does HIV have symptoms", "HIV early symptoms"
+    ],
+    "Pregnancy Risk": [
+        "pregnancy risk", "can I get pregnant", "pregnancy chance", "will I get pregnant", 
+        "am I pregnant", "pregnancy symptoms", "what are the chances of pregnancy", 
+         "can sperm on hands cause pregnancy"
+    ],
+    "Contraception": [
+        "birth control", "contraception", "ways to prevent pregnancy", "condoms", 
+        "IUD", "implant", "contraceptive patch", "contraceptive ring", "birth control pills", 
+        "how to not get pregnant", "most effective birth control"
+    ],
+    "Emergency Contraception": [
+        "morning after pill", "plan B", "emergency pill", "after sex pill", 
+        "can I still prevent pregnancy", "how late can I take plan B", "how does the morning after pill work"
+    ],
+    "Menstruation": [
+        "menstruation", "period", "that time of the month", "monthly bleeding", 
+        "why do I get cramps", "period pain", "irregular periods", "why is my period late", 
+        "how long does a period last", "period symptoms", "what does a normal period look like"
+    ],
+    "Adolescence & Puberty": [
+        "adolescence", "puberty", "growing up", "body changes", "why is my voice deeper", 
+        "why do I get acne", "why do I smell different", "body odor", "puberty signs", 
+        "what happens during puberty", "why is my body changing", "why am I moody"
+    ]
 }
+
 
 # Function to Match User Queries
 
@@ -56,20 +105,14 @@ def get_response(user_message):
     faq_entry = HealthInfo.query.filter(HealthInfo.question.ilike(f"%{user_message}%")).first()
 
     if not faq_entry:
-        # Token-based keyword matching
-        words = user_message.split()
-        matched_questions = set()       
+        # Use fuzzy matching if no exact match is found
+        all_questions = [q.question for q in HealthInfo.query.all()]
+        best_match, score = process.extractOne(user_message, all_questions)
 
-        for word in words:
-            for key, synonyms in KEYWORD_DICTIONARY.items():
-                if word in synonyms or word == key:
-                    matched_questions.add(key)
-
-        if matched_questions:
-            faq_entry = HealthInfo.query.filter(
-                or_(*[HealthInfo.question.ilike(f"%{keyword}%") for keyword in matched_questions])
-            ).first()
-    
+        if score >= 70:  # Only accept good matches (70% similarity or higher)
+            faq_entry = HealthInfo.query.filter_by(question=best_match).first()
+ 
+       
     if faq_entry:
         # Update FAQ tracking count
         faq_track = FAQTracking.query.filter_by(question_id=faq_entry.question_id).first()
@@ -82,7 +125,8 @@ def get_response(user_message):
         db.session.commit()
         return faq_entry.answer
     
-    return "I'm sorry, please rephrase your question."
+    return"I'm not sure I understand. Did you mean something about STIs, contraception,adolescence,menstruation or pregnancy?"
+
 
 # Flask Routes
 @app.route('/')
